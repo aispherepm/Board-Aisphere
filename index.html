@@ -1105,10 +1105,18 @@ async function loadData(){
     D.leadTime=(j.leadTime||[]).map(r=>({...r,_m:nm(gv(r,'Mês','mes'))}));
     D.raw=(j.raw||[]).map(r=>({...r,_m:nm(gv(r,'Mês Ref','mes_ref')),_s:String(gv(r,'Semana Ref','semana_ref')||'')}));
     D.cliente=(j.cliente||[]).map(r=>({...r,_m:nm(gv(r,'Mês','mes'))}));
+    D.ultimoProcessamento=j.ultimoProcessamento||null;
+    D.timestamp=j.timestamp||null;
     // build sem→mes map
     D.semana.forEach(r=>{if(r._s&&r._m)SEM_MES[r._s]=r._m});
     populateFi();
-    document.getElementById('lut').textContent=new Date().toLocaleString('pt-BR');
+    // Usar timestamp do último processarJira() se disponível
+    const _tsReal = D.ultimoProcessamento || D.timestamp;
+    const _tsDate = _tsReal ? new Date(_tsReal) : new Date();
+    const _tsLabel = D.ultimoProcessamento
+      ? _tsDate.toLocaleString('pt-BR')
+      : '~ ' + _tsDate.toLocaleString('pt-BR');
+    document.getElementById('lut').textContent = _tsLabel;
   }catch(e){console.error(e);document.getElementById('lut').textContent='❌ '+e.message;}
   setL(false);render();
   // Hook: notificar calendário
