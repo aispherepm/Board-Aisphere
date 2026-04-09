@@ -371,7 +371,7 @@ body.light .dc-h{color:rgba(10,20,40,.85);text-shadow:0 1px 2px rgba(255,255,255
 .act-row:last-child{border-bottom:none}
 .act-row:hover{background:rgba(0,194,224,0.05);border-radius:4px}
 .act-key{color:var(--cy);font-weight:600;white-space:nowrap}
-.act-title{color:var(--tp);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act-title{color:var(--tp);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:default}
 .act-dev{color:var(--ts)}
 .act-h{color:var(--ok);font-weight:600;text-align:right}
 .act-dl{color:var(--ts);text-align:right}
@@ -1472,7 +1472,7 @@ function render(){
         const criado=gv(r,'Criado','criado')||'';
         const pcol=PC_PE[proj.toUpperCase()]||'var(--ts)';
         const scol=stColor(st);
-        const ts=titulo.length>52?titulo.substring(0,52)+'…':titulo;
+        const ts=titulo;
         // Format date → dd/mm regardless of source format
         let dataStr='—';
         if(criado){
@@ -1578,10 +1578,10 @@ function render(){
           const titulo=gv(r,'Resumo','resumo','summary')||'—';
           const dev=gv(r,'Responsável','Responsavel','responsavel')||'';
           const devStr=dev?dev.split(' ')[0]:'<span style="color:var(--wn);font-size:10px">Sem resp.</span>';
-          const ts=titulo.length>65?titulo.substring(0,65)+'…':titulo;
+          const ts=titulo;
           _szGrid+=`<div style="display:grid;${_col};column-gap:16px;align-items:center;border-bottom:1px solid rgba(240,165,0,0.08);padding:4px 0">
             <span style="white-space:nowrap"><span style="font-size:11px;color:${col};font-weight:600">${key}</span></span>
-            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tp);font-size:11px;padding:0 8px">${ts}</span>
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--tp);font-size:11px;padding:0 8px" title="${ts}">${ts}</span>
             <span style="text-align:right;color:var(--ts);font-size:11px;padding-right:4px">${devStr}</span>
             <span style="text-align:right;color:var(--wn);font-size:10px;font-style:italic;white-space:nowrap">sem est.</span>
           </div>`;
@@ -1648,11 +1648,11 @@ function render(){
           const key=gv(r,'Chave','chave')||'',titulo=gv(r,'Resumo','resumo','summary')||'—';
           const dev=(gv(r,'Responsável','Responsavel','responsavel')||'—').split(' ')[0];
           const est=parseFloat(gv(r,'Estimativa (h)','estimativa_h'))||0;
-          const ts=titulo.length>50?titulo.substring(0,50)+'…':titulo;
+          const ts=titulo; // título completo — CSS faz o truncate com ellipsis
           const estStr=est>0?`<span style="font-family:'JetBrains Mono',monospace">${Math.round(est)}h</span>`:`<span style="color:var(--wn);font-size:10px;font-style:italic">sem estimativa</span>`;
           _blH+=`<div style="display:flex;align-items:center;width:100%;border-bottom:1px solid var(--b);padding:4px 0">
             <span style="width:76px;flex-shrink:0;white-space:nowrap"><span style="font-size:11px;color:${col};font-weight:600;font-family:'JetBrains Mono',monospace">${key}</span></span>
-            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tp);font-size:11px;padding:0 8px">${ts}</span>
+            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--tp);font-size:11px;padding:0 8px" title="${ts}">${ts}</span>
             <span style="width:90px;flex-shrink:0;text-align:right;color:var(--ts);font-size:10px;padding-right:8px">${dev}</span>
             <span style="width:90px;flex-shrink:0;text-align:right;color:var(--ts);font-size:11px">${estStr}</span>
           </div>`;
@@ -2349,7 +2349,7 @@ function renderExecPanel(fA, msSel, fP, dias, rawR, hConcAll, hAndAll, capT, hCo
       sortedFila.forEach(r=>{
         const key=gv(r,'Chave','chave')||'—';
         const titulo=gv(r,'Resumo','resumo','summary')||'—';
-        const tituloShort=titulo.length>38?titulo.substring(0,38)+'…':titulo;
+        const tituloShort=titulo;
         const dev=(gv(r,'Responsável','Responsavel','responsavel')||'—').split(' ')[0];
         const h=parseFloat(gv(r,'Estimativa (h)','estimativa_h'))||0;
         const proj=(gv(r,'Projeto Key','projeto_key','Projeto')||'').toUpperCase();
@@ -2536,8 +2536,8 @@ function renderExecPanel(fA, msSel, fP, dias, rawR, hConcAll, hAndAll, capT, hCo
       const dev=(gv(r,'Responsável','Responsavel','responsavel')||'Sem responsável').split(' ')[0];
       const est=parseFloat(gv(r,'Estimativa (h)','estimativa_h'))||0;
       const col=PC_COL_T[proj.toUpperCase()]||'var(--ts)';
-      const ts=titulo.length>55?titulo.substring(0,55)+'…':titulo;
-            tblH+=`<tr style="border-bottom:1px solid var(--b)"><td style="padding:6px 8px 6px 0;white-space:nowrap"><span style="font-size:11px;color:${col};font-weight:500">${key}</span></td><td style="padding:6px 8px;color:var(--tp);max-width:320px">${ts}</td><td style="padding:6px 8px;color:var(--ts);white-space:nowrap">${dev}</td><td style="padding:6px 0 6px 8px;text-align:right;color:var(--ts)">${Math.round(est)}h</td></tr>`;
+      const ts=titulo;
+            tblH+=`<tr style="border-bottom:1px solid var(--b)"><td style="padding:6px 8px 6px 0;white-space:nowrap"><span style="font-size:11px;color:${col};font-weight:500">${key}</span></td><td style="padding:6px 8px;color:var(--tp);max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${ts}">${ts}</td><td style="padding:6px 8px;color:var(--ts);white-space:nowrap">${dev}</td><td style="padding:6px 0 6px 8px;text-align:right;color:var(--ts)">${Math.round(est)}h</td></tr>`;
     });
     tblH+='</tbody></table>';
   }
@@ -2584,10 +2584,10 @@ function renderExecPanel(fA, msSel, fP, dias, rawR, hConcAll, hAndAll, capT, hCo
       const dev=(gv(r,'Responsável','Responsavel','responsavel')||'—').split(' ')[0];
       const est=parseFloat(gv(r,'Estimativa (h)','estimativa_h'))||0;
       const st=gv(r,'Status Padronizado','status_padronizado')||'';
-      const ts=titulo.length>55?titulo.substring(0,55)+'…':titulo;
+      const ts=titulo;
       _aH+=`<div style="display:grid;${_COL};align-items:center;border-bottom:1px solid var(--b);padding:5px 0">
         <span style="white-space:nowrap"><span style="font-size:11px;color:${col};font-weight:600;font-family:'JetBrains Mono',monospace">${key}</span></span>
-        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tp);font-size:11px;padding:0 8px">${ts}</span>
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--tp);font-size:11px;padding:0 8px" title="${ts}">${ts}</span>
         <span style="text-align:right;color:var(--ts);font-size:11px;padding-right:4px">${dev}</span>
         <span style="text-align:center"><span style="font-size:10px;color:${_SC(st)};font-weight:600">${_SS(st)}</span></span>
         <span style="text-align:right;color:var(--ts);font-size:11px;font-family:'JetBrains Mono',monospace">${est>0?Math.round(est)+'h':'—'}</span>
@@ -2947,7 +2947,7 @@ function calRenderActList(){
       var cliHdr=cli!=='_'?'<div class="act-cli-hdr">🏢 '+cli+'</div>':'';
       var rows=cliTickets.map(function(t){
         var devName=(Object.keys(t.devs)[0]||'—').split(' ')[0];
-        var tit=t.resumo.length>42?t.resumo.substring(0,42)+'…':t.resumo;
+        var tit=t.resumo; // título completo — CSS faz o truncate com ellipsis
         var keyCol='<a class="act-key" href="https://deepcenter.atlassian.net/browse/'+t.key+'" target="_blank" style="text-decoration:none">'+t.key+'</a>';
         // Data limite: busca do dlMap (D.raw completo) com fallback em t.dl
         var dlRaw=dlMap[String(t.key).trim()]||t.dl||'';
@@ -3561,7 +3561,7 @@ function calRender(){
           var over=d.hours>8, av=Math.max(8-d.hours,0);
           var tks=d.tickets.map(function(t){
             var pc=PC[t.proj]||'#5a7a9a';
-            var tit=t.resumo.length>40?t.resumo.substring(0,40)+'…':t.resumo;
+            var tit=t.resumo; // título completo — CSS faz o truncate com ellipsis
             var cliTag=t.proj==='NN'&&t.cliente?'<div class="tt-cli">🏢 '+t.cliente+'</div>':'';
             return '<div class="tt-tk"><span class="tt-key" style="color:'+pc+'">'+t.key+'</span><span class="tt-h">'+Math.round(t.hours)+'h</span><div class="tt-title">'+tit+'</div>'+cliTag+'<div class="tt-dl" style="color:'+pc+'">📅 '+(function(s){if(!s)return'—';var m=String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?m[3]+'/'+m[2]+'/'+m[1]:String(s).split('T')[0].split('-').reverse().join('/');})(t.dl)+'</div></div>';
           }).join('');
