@@ -939,7 +939,7 @@ body.light .cal-ms-drop{background:#fff!important;}
 <script>
 const WU='https://script.google.com/macros/s/AKfycbzneeHnwiM_xatd7QD_Mdk_YN9WfdF7MAIVL_ZVDHzLDwsSbXSf-G06VwFxUnq2TRy4/exec';
 let D={mes:[],semana:[],dev:[],leadTime:[],raw:[]};
-const DM={Jan:22,Fev:19,Mar:21,Abr:22,Mai:20,Jun:22,Jul:23,Ago:21,Set:22,Out:22,Nov:21,Dez:21};
+const DM={Jan:22,Fev:19,Mar:21,Abr:20,Mai:20,Jun:21,Jul:23,Ago:21,Set:22,Out:22,Nov:19,Dez:21};
 const ML=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 const EC=['#1a8fd1','#534AB7','#00d48c','#a8956e','#c45090','#2B8FE0','#e03c3c','#EF9F27','#7F77DD'];
 const PC={IBR:'#2B8FE0',LA:'#7F77DD',NN:'#f0a500',AB:'#f0a500'};
@@ -969,16 +969,14 @@ function getDevs(ano,mes){
   return key in CAP_POR_MES ? CAP_POR_MES[key] : NDEVS;
 }
 function calcCapacidade(mSel,fAno){
-  // Soma capacidade REAL mês a mês usando monthDays() (mesma lógica do calendário)
-  // Para o mês atual: conta apenas dias a partir de hoje (capacidade restante)
-  var t=new Date(), curY=t.getFullYear(), curM=t.getMonth();
-  var hoje=new Date(); hoje.setHours(0,0,0,0);
+  // Capacidade ESTÁTICA: total real do mês inteiro × devs
+  // Usa DM (tabela com feriados já descontados) quando disponível
+  var t=new Date(), curY=t.getFullYear();
   var ano=fAno&&fAno!=='all'?+fAno:curY;
   function wdCount(yr,mo){
-    var days=monthDays(yr,mo).filter(function(d){return !isWk(d)&&!isFeriado(d);});
-    // Se for o mês atual do ano atual: contar só dias a partir de hoje
-    if(yr===curY&&mo===curM) days=days.filter(function(d){return d>=hoje;});
-    return days.length;
+    // Usa DM como referência de dias úteis reais (já considera feriados)
+    var moAbrev=ML[mo];
+    return (moAbrev&&DM[moAbrev])||22;
   }
   if(!mSel||mSel.includes('all')){
     var total=0;
@@ -997,6 +995,8 @@ function calcCapacidade(mSel,fAno){
   });
   return total||NDEVS*22*8;
 }
+
+
 function isDev(name){return DEVS_NAMES.some(d=>name.toLowerCase().includes(d));};
 // Excluídos permanentes do gráfico por dev (analistas, PMs, etc.)
 // Diferente de DEVS_NAMES: excluídos mesmo em modo histórico
@@ -1170,10 +1170,16 @@ function pOk(p,fp){return fp==='all'||String(p).toUpperCase()===fp.toUpperCase()
 function calcDias(mSel) {
   var fAno=document.getElementById('fAno')?document.getElementById('fAno').value:'all';
   var ano=fAno!=='all'?+fAno:new Date().getFullYear();
+  // Usa DM como referência real (já considera feriados nacionais)
+  function wdUteis(mo, yr) {
+    if (mo < 0) return 22;
+    // Conta dias úteis reais: sem fins de semana e sem feriados
+    return monthDays(yr||ano, mo).filter(function(d){ return !isWk(d) && !isFeriado(d); }).length;
+  }
   if (!mSel.includes('all') && mSel.length) {
     return mSel.reduce(function(a,m){
       var mo=ML.indexOf(m);
-      return a+(mo>=0?monthDays(ano,mo).filter(function(d){return !isWk(d);}).length:(DM[m]||22));
+      return a + wdUteis(mo);
     },0);
   }
   // "Todos os meses" — soma os meses com dados
@@ -1187,7 +1193,7 @@ function calcDias(mSel) {
   if (mesesPresentes.size === 0) return 22;
   return [...mesesPresentes].reduce(function(a,m){
     var mo=ML.indexOf(m);
-    return a+(mo>=0?monthDays(ano,mo).filter(function(d){return !isWk(d);}).length:(DM[m]||22));
+    return a + wdUteis(mo);
   },0);
 }
 
@@ -1216,7 +1222,8 @@ function render(){
     var _my=_mp.length>1?+_mp[1]:(fA&&fA!=='all'?+fA:new Date().getFullYear());
     if(_mo>=0) _nDevsM=getDevs(_my,_mo);
   }
-  const capT=calcCapacidade(mSel,fA);
+  const capT=calcCapacidade(mSel,fA);          // estático: mês inteiro
+  const capTDisp=calcCapacidadeDisp(mSel,fA);  // dinâmico: a partir de hoje
 
   // raw filtrado (base para tudo)
   const fCli=document.getElementById('fCliente')?document.getElementById('fCliente').value:'all';
@@ -1308,7 +1315,7 @@ function render(){
   // Ocupação real = horas EM ANDAMENTO de TODOS projetos ÷ capacidade
   // (hConcAll continua existindo como "entregas do período", usado no painel executivo)
   const ocupReal=capT>0?Math.round(hAndAll/capT*100):0;
-  const livreTodo=capT-hAndAll; // disponível real baseado em alocação ativa
+  const livreTodo=capTDisp-hAndAll; // disponível real baseado em capacidade restante
 
   document.getElementById('caplbl').textContent='= '+capT+'h ('+NDEVS+' devs)';
   // kCap removed
@@ -1516,7 +1523,7 @@ function render(){
   // Atualiza nota do gráfico de dev
   // devChartNote removed
   const devList=Object.values(devMap);
-  renderExecPanel(fA,mSel,fP,dias,rawR,hConcAll,hAndAll,capT,hConc);
+  renderExecPanel(fA,mSel,fP,dias,rawR,hConcAll,hAndAll,capT,hConc,capTDisp);
 
   // Popula sizing block — aqui no onFC onde ST_COL e stShort estão disponíveis
   // Sizing: "Itens Pendentes" + "Tarefas pendentes" SEM estimativa (com ou sem responsável)
@@ -1660,7 +1667,7 @@ function render(){
 
   rCliente(fA,mSel,fP);
   rEvo(fA,mSel,fP,dias);
-  rDev(fA,mSel,fP,dias);
+  rDev(fA,mSel,fP,dias,capTDisp);
   {const _h=new Date(),_m=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][_h.getMonth()],_a=String(_h.getFullYear());
   rEpic(rawR,!mSel.includes('all')&&mSel.includes(_m)&&(fA==='all'||fA===_a));}
   rMonthC(fA,mSel,fP);
@@ -1835,8 +1842,11 @@ function rEvo(fA,mSel,fP,dias){
 // ── DEV COMBINED ──────────────────────────────────────────────
 // Só exibe DEVS reais (antonio, ewerton, kayque) — responde aos filtros
 // Leonardo aparece nos outros gráficos mas não na ocupação por capacidade
-function rDev(fA,mSel,fP,dias){
-  const cpd=8*dias;
+function rDev(fA,mSel,fP,dias,capTDisp){
+  // cpd: capacidade por dev a partir de hoje (remanescente)
+  // capTDisp vem de render() — se não fornecido, usa dias inteiros como fallback
+  const cpdTotal=capTDisp||8*dias; // total remanescente do time
+  const cpd=Math.round(cpdTotal/NDEVS); // por dev
   const el=document.getElementById('devChart');
 
   // ── Detecta se é mês atual (alocação) ou período histórico (entregas) ──
@@ -2189,7 +2199,8 @@ function rCliente(fA, mSel, fP) {
 }
 
 // ── PAINEL EXECUTIVO ─────────────────────────────────────────
-function renderExecPanel(fA, msSel, fP, dias, rawR, hConcAll, hAndAll, capT, hConcFilt) {
+function renderExecPanel(fA, msSel, fP, dias, rawR, hConcAll, hAndAll, capT, hConcFilt, capTDisp) {
+  capTDisp = capTDisp || capT; // fallback para capT se não fornecido
   // hConcAll  = horas concluídas no período (entregas)
   // hAndAll   = horas em andamento agora (alocação ativa — só relevante para mês atual)
   // hConcFilt = horas concluídas do projeto filtrado
@@ -2290,7 +2301,7 @@ function renderExecPanel(fA, msSel, fP, dias, rawR, hConcAll, hAndAll, capT, hCo
 
   // Disponível por compromisso: Capacidade − Alocação Ativa − Carga Agendada
   const cpd2=capT/NDEVS;
-  const livreComPromisso=capT-hAndAll-hAgendado;
+  const livreComPromisso=capTDisp-hAndAll-hAgendado;
 
   // Taxa de ocupação por compromisso: (Ativo + Agendado) / Capacidade
   const ocupComPromisso=capT>0?Math.round((hAndAll+hAgendado)/capT*100):0;
@@ -2729,6 +2740,36 @@ function monthDays(y,m){
   return arr;
 }
 
+// calcCapacidadeDisp: capacidade restante a partir de hoje (para Disponível p/ Alocação)
+function calcCapacidadeDisp(mSel,fAno){
+  // Capacidade DINÂMICA: dias úteis restantes a partir de hoje × devs
+  // isFeriado e monthDays já estão disponíveis aqui (definidas antes)
+  var t=new Date(), curY=t.getFullYear(), curM=t.getMonth();
+  var hoje=new Date(); hoje.setHours(0,0,0,0);
+  var ano=fAno&&fAno!=='all'?+fAno:curY;
+  function wdCount(yr,mo){
+    var days=monthDays(yr,mo).filter(function(d){return !isWk(d)&&!isFeriado(d);});
+    if(yr===curY&&mo===curM) days=days.filter(function(d){return d>=hoje;});
+    return days.length;
+  }
+  if(!mSel||mSel.includes('all')){
+    var total=0;
+    ML.forEach(function(m,i){ total+=getDevs(ano,i)*wdCount(ano,i)*8; });
+    return total||NDEVS*22*8*12;
+  }
+  var meses=mSel.filter(function(m){return m!=='all';});
+  if(meses.length===0) return NDEVS*wdCount(ano,ML.indexOf(mSel[0]||'Jan'))*8;
+  var total=0;
+  meses.forEach(function(m){
+    var parts=m.split('/');
+    var mo=ML.indexOf(parts[0]);
+    var yr=parts.length>1?+parts[1]:ano;
+    if(mo<0) return;
+    total+=getDevs(yr,mo)*wdCount(yr,mo)*8;
+  });
+  return total||NDEVS*22*8;
+}
+
 // Popular seletor de mês
 // Estado dos filtros do calendário
 var calMesSel=null;
@@ -3143,6 +3184,8 @@ function calRender(){
     if(_diaFiltro!==null) return _diaFiltro.indexOf(dKey(d))>=0;
     return true;
   });
+  // wdaysUteis: dias úteis reais (sem fins de semana E sem feriados) — para KPI e capacidade
+  var wdaysUteis=wdays.filter(function(d){ return !isFeriado(d); });
   // allDays: todos os dias incluindo fins de semana — para renderizar o grid
   var allDays=days.filter(function(d){
     if(_diaFiltro!==null) return _diaFiltro.indexOf(dKey(d))>=0;
@@ -3315,14 +3358,13 @@ function calRender(){
   // Capacidade: apenas os dias filtrados (wdays) × devs × 8h
   var _calNDevs=NDEVS;
   var totalCap=0;
-  var _today=new Date(); _today.setHours(0,0,0,0);
   _activeMes.forEach(function(mv){
     var p=mv.split('-');
     var yr=+p[0], mo=+p[1];
     var nd=getDevs(yr,mo);
-    // Conta só os wdays a partir de hoje, excluindo feriados — igual ao Board
-    var wdCount=wdays.filter(function(d){
-      return d.getFullYear()===yr&&d.getMonth()===mo&&d>=_today&&!isFeriado(d);
+    // Capacidade estática: mês inteiro sem filtro de hoje
+    var wdCount=wdaysUteis.filter(function(d){
+      return d.getFullYear()===yr&&d.getMonth()===mo;
     }).length;
     totalCap+=nd*wdCount*8;
   });
@@ -3330,6 +3372,19 @@ function calRender(){
     var _calMVal=_activeMes[0].split('-');
     _calNDevs=getDevs(+_calMVal[0],+_calMVal[1]);
   }
+  // totalCapDisp: capacidade restante a partir de hoje (para o KPI Disponível)
+  var _todayDisp=new Date(); _todayDisp.setHours(0,0,0,0);
+  var totalCapDisp=0;
+  _activeMes.forEach(function(mv){
+    var p=mv.split('-');
+    var yr=+p[0], mo=+p[1];
+    var nd=getDevs(yr,mo);
+    var wdCountDisp=wdaysUteis.filter(function(d){
+      return d.getFullYear()===yr&&d.getMonth()===mo&&d>=_todayDisp;
+    }).length;
+    totalCapDisp+=nd*wdCountDisp*8;
+  });
+
   // totalAlloc: soma apenas dos dias filtrados (wdays)
   var totalAlloc=0;
   devList.forEach(function(d){
@@ -3372,13 +3427,13 @@ function calRender(){
     if(!isAtivoCal&&!isExclCal&&est>0&&!!dl) hAgendadoCal+=est;
   });
   // Disponível: mesma fórmula do Board → números idênticos nas duas views
-  var dispCalRaw=totalCap-hAndAllCal-hAgendadoCal;
+  var dispCalRaw=totalCapDisp-hAndAllCal-hAgendadoCal;
   var dispCal=Math.max(dispCalRaw,0);
-  var dispCalColor=dispCalRaw<=0?'var(--dn)':dispCalRaw<totalCap*0.3?'var(--wn)':'var(--ok)';
+  var dispCalColor=dispCalRaw<=0?'var(--dn)':dispCalRaw<totalCapDisp*0.3?'var(--wn)':'var(--ok)';
   var agendadoColor=hAgendadoCal>0?'var(--wn)':'var(--ts)';
 
   document.getElementById('cv-summary').innerHTML=
-    '<div class="ex-sc"><div class="ex-sc-lbl">DIAS ÚTEIS</div><div class="ex-sc-val">'+wdays.length+'</div><div class="ex-sc-sub">no período</div></div>'+
+    '<div class="ex-sc"><div class="ex-sc-lbl">DIAS ÚTEIS</div><div class="ex-sc-val">'+wdaysUteis.length+'</div><div class="ex-sc-sub">no período</div></div>'+
     '<div class="ex-sc"><div class="ex-sc-lbl">CAPACIDADE</div><div class="ex-sc-val">'+totalCap+'h</div><div class="ex-sc-sub">'+_calNDevs+' devs</div></div>'+
     '<div class="ex-sc"><div class="ex-sc-lbl">HORAS NO PERÍODO</div><div class="ex-sc-val" style="color:'+pctCol+'">'+Math.round(totalAlloc)+'h</div><div class="ex-sc-sub">ativo + agendado + concluído</div></div>'+
     '<div class="ex-sc"><div class="ex-sc-lbl">CARGA AGENDADA</div><div class="ex-sc-val" style="color:'+agendadoColor+'">'+Math.round(hAgendadoCal)+'h</div><div class="ex-sc-sub">pendentes com prazo · não iniciados</div></div>'+
