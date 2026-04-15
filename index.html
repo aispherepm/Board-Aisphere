@@ -689,7 +689,7 @@ body.light .cal-ms-drop{background:#fff!important;}
     <div class="fg"><label>PROJETO</label>
       <select id="fP" onchange="onFC()">
         <option value="all">Consolidado</option>
-        <option value="IBR">IBR — Bradesco Reintegrados</option>
+        <option value="BR">BR — Bradesco Reintegrados</option>
         <option value="LA">Legal Bradesco</option>
         <option value="NN">Novos Negócios POC</option>
       </select>
@@ -897,7 +897,7 @@ body.light .cal-ms-drop{background:#fff!important;}
       <label class="cal-ms-item"><input type="checkbox" value="all" checked onchange="calProjChange(this)"> Todos</label>
       <label class="cal-ms-item" style="--pc:#7F77DD"><input type="checkbox" value="LA" onchange="calProjChange(this)"> <span style="color:#7F77DD;font-weight:700">●</span> Legal Bradesco (LA)</label>
       <label class="cal-ms-item" style="--pc:#f0a500"><input type="checkbox" value="NN" onchange="calProjChange(this)"> <span style="color:#f0a500;font-weight:700">●</span> Novos Negócios (NN)</label>
-      <label class="cal-ms-item" style="--pc:#2B8FE0"><input type="checkbox" value="IBR" onchange="calProjChange(this)"> <span style="color:#2B8FE0;font-weight:700">●</span> Bradesco Reintegrados (IBR)</label>
+      <label class="cal-ms-item" style="--pc:#2B8FE0"><input type="checkbox" value="BR" onchange="calProjChange(this)"> <span style="color:#2B8FE0;font-weight:700">●</span> Bradesco Reintegrados (BR)</label>
     </div>
   </div>
   <!-- Cliente: só aparece quando NN está selecionado -->
@@ -927,7 +927,7 @@ body.light .cal-ms-drop{background:#fff!important;}
       <div class="lg"><div class="lb" style="background:rgba(0,212,140,.3);border:1px solid #00d48c"></div>Disponivel</div>
       <div class="lg"><div class="lb" style="background:rgba(127,119,221,.75)"></div>LA</div>
       <div class="lg"><div class="lb" style="background:rgba(240,165,0,.75)"></div>NN</div>
-      <div class="lg"><div class="lb" style="background:rgba(0,194,224,.75)"></div>IBR</div>
+      <div class="lg"><div class="lb" style="background:rgba(0,194,224,.75)"></div>BR</div>
       <div class="lg"><div class="lb" style="background:rgba(224,60,60,.8)"></div>Sobrecarga &gt; 8h</div>
       <div class="lg"><div class="lb" style="background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08)"></div>Fim de semana</div>
       <div class="lg"><div class="lb" style="background:rgba(255,80,80,.6)"></div>Feriado</div>
@@ -955,7 +955,7 @@ let D={mes:[],semana:[],dev:[],leadTime:[],raw:[]};
 const DM={Jan:22,Fev:19,Mar:21,Abr:20,Mai:20,Jun:21,Jul:23,Ago:21,Set:22,Out:22,Nov:19,Dez:21};
 const ML=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 const EC=['#1a8fd1','#534AB7','#00d48c','#a8956e','#c45090','#2B8FE0','#e03c3c','#EF9F27','#7F77DD'];
-const PC={IBR:'#2B8FE0',LA:'#7F77DD',NN:'#f0a500',AB:'#f0a500'};
+const PC={BR:'#2B8FE0',LA:'#7F77DD',NN:'#f0a500',AB:'#f0a500'};
 // ── ROSTER DO TIME DE DESENVOLVIMENTO ─────────────────────────
 // Adicione/remova nomes aqui para ajustar capacidade automaticamente
 // Leonardo NÃO está aqui — é analista de negócio (homologação)
@@ -1370,7 +1370,7 @@ function render(){
     const dl=gv(r,'Data Limite','data_limite')||'';
     return est>0 && !dl;
   }).length;
-  const pj=fP==='all'?'(IBR, LA, NN)':'('+fP+')';
+  const pj=fP==='all'?'(BR, LA, NN)':'('+fP+')';
   // ── FILA DE ALOCAÇÃO: tickets aguardando alocação (estimativa + sem prazo) ──
   // Exclui ativos (Em andamento, Homologação, Em Validação), bloqueados e concluídos
   // Alinhado com o critério "estimados sem prazo" do Calendário de Alocação
@@ -1427,7 +1427,7 @@ function render(){
 
   // Agrupa por Epic
   const epicGroups={};
-  const PC_PE={'LA':'#1a8fd1','NN':'#00d48c','IBR':'#f0a500'};
+  const PC_PE={'LA':'#1a8fd1','NN':'#00d48c','BR':'#f0a500'};
   pipeRaw.forEach(r=>{
     const epic=gv(r,'Epic','epic','Parent summary','parent_summary')||'';
     const epicKey=epic||'__sem_epic__';
@@ -1516,9 +1516,9 @@ function render(){
   // ── Alocação ativa por projeto ─────────────────────────────
   // Mostra apenas tickets em andamento/homologação (o que conta na alocação)
   const STATUS_ALOC=['Em andamento','Homologação Interna','Homologação Cliente'];
-  const PC_ALLOC={'LA':'#7F77DD','NN':'#f0a500','IBR':'#2B8FE0'};
-  const PROJ_NAMES={'LA':'Legal Bradesco','NN':'Novos Negócios','IBR':'Bradesco Reintegrados'};
-  const PROJ_ORDER=['LA','NN','IBR'];
+  const PC_ALLOC={'LA':'#7F77DD','NN':'#f0a500','BR':'#2B8FE0'};
+  const PROJ_NAMES={'LA':'Legal Bradesco','NN':'Novos Negócios','BR':'Bradesco Reintegrados'};
+  const PROJ_ORDER=['LA','NN','BR'];
 
   const alocByProj={};
   rawR.filter(r=>{
@@ -1561,8 +1561,8 @@ function render(){
   if(_szEl){
     if(!_szRaw.length){_szEl.innerHTML='';}
     else{
-      const _szPC={'LA':'#7F77DD','NN':'#f0a500','IBR':'#2B8FE0'};
-      const _szPN={'LA':'Legal Bradesco','NN':'Novos Negócios','IBR':'Bradesco Reintegrados'};
+      const _szPC={'LA':'#7F77DD','NN':'#f0a500','BR':'#2B8FE0'};
+      const _szPN={'LA':'Legal Bradesco','NN':'Novos Negócios','BR':'Bradesco Reintegrados'};
       const _szByP={};
       _szRaw.forEach(r=>{
         const p=(gv(r,'Projeto Key','projeto_key','Projeto')||'?').toUpperCase();
@@ -1577,7 +1577,7 @@ function render(){
         <span style="font-size:10px;font-weight:600;color:var(--ts);text-transform:uppercase;letter-spacing:.8px;text-align:right;padding-right:4px">Responsável</span>
         <span style="font-size:10px;font-weight:600;color:var(--ts);text-transform:uppercase;letter-spacing:.8px;text-align:right">Est.</span>
       </div>`;
-      ['LA','NN','IBR'].filter(p=>_szByP[p]).forEach(p=>{
+      ['LA','NN','BR'].filter(p=>_szByP[p]).forEach(p=>{
         const col=_szPC[p]||'var(--ts)';
         const pNome=_szPN[p]||p;
         // Linha do projeto
@@ -1625,8 +1625,8 @@ function render(){
   if(_blEl){
     if(!_blRaw.length){_blEl.innerHTML='';if(_blWrap)_blWrap.style.display='none';}
     else{
-      const _blPC={'LA':'#7F77DD','NN':'#f0a500','IBR':'#2B8FE0'};
-      const _blPN={'LA':'Legal Bradesco','NN':'Novos Negócios','IBR':'Bradesco Reintegrados'};
+      const _blPC={'LA':'#7F77DD','NN':'#f0a500','BR':'#2B8FE0'};
+      const _blPN={'LA':'Legal Bradesco','NN':'Novos Negócios','BR':'Bradesco Reintegrados'};
       const _blByP={};
       _blRaw.forEach(r=>{
         const p=(gv(r,'Projeto Key','projeto_key','Projeto')||'?').toUpperCase();
@@ -1637,7 +1637,7 @@ function render(){
         else _blByP[p].semEst++;
       });
       let _blH=`<div style="margin-top:4px">`;
-      ['LA','NN','IBR'].filter(p=>_blByP[p]).forEach(p=>{
+      ['LA','NN','BR'].filter(p=>_blByP[p]).forEach(p=>{
         const g=_blByP[p],col=_blPC[p]||'var(--ts)',nm=_blPN[p]||p;
         const semEstBadge=g.semEst>0?`<span style="font-size:10px;color:var(--wn);font-family:'JetBrains Mono',monospace;margin-left:6px">⚠️ ${g.semEst} sem est.</span>`:'';
         _blH+=`<div style="margin-bottom:14px">
@@ -2540,7 +2540,7 @@ function renderExecPanel(fA, msSel, fP, dias, rawR, hConcAll, hAndAll, capT, hCo
   if(!filaRaw.length){
     tblH='<div class="es" style="color:var(--ok);padding:8px 0">✓ Nenhum ticket pendente aguardando alocação</div>';
   }else{
-    const PC_COL_T={'LA':'#1a8fd1','NN':'#00d48c','IBR':'#f0a500'};
+    const PC_COL_T={'LA':'#1a8fd1','NN':'#00d48c','BR':'#f0a500'};
     tblH='<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="color:var(--ts);text-transform:uppercase;letter-spacing:.8px;font-size:10px;border-bottom:1px solid var(--b)"><th style="text-align:left;padding:4px 8px 6px 0;font-weight:500">Ticket</th><th style="text-align:left;padding:4px 8px 6px;font-weight:500">Título</th><th style="text-align:left;padding:4px 8px 6px;font-weight:500">Responsável</th><th style="text-align:right;padding:4px 0 6px 8px;font-weight:500">Est.</th></tr></thead><tbody>';
     filaRaw.sort((a,b)=>(gv(a,'Projeto Key','projeto_key','Projeto')||'').localeCompare(gv(b,'Projeto Key','projeto_key','Projeto')||'')).forEach(r=>{
       const key=gv(r,'Chave','chave')||'';
@@ -2559,8 +2559,8 @@ function renderExecPanel(fA, msSel, fP, dias, rawR, hConcAll, hAndAll, capT, hCo
 
   // Alocação ativa por projeto — inline no exec panel (abaixo da barra)
   // Usa helpers inline pois ST_COL/stShort não estão neste escopo
-  const _PC={'LA':'#7F77DD','NN':'#f0a500','IBR':'#2B8FE0'};
-  const _PN={'LA':'Legal Bradesco','NN':'Novos Negócios','IBR':'Bradesco Reintegrados'};
+  const _PC={'LA':'#7F77DD','NN':'#f0a500','BR':'#2B8FE0'};
+  const _PN={'LA':'Legal Bradesco','NN':'Novos Negócios','BR':'Bradesco Reintegrados'};
   const _SA=['Em andamento','Homologação Interna','Homologação Cliente'];
   const _SC=s=>s.toLowerCase().includes('andamento')?'#1a8fd1':s.toLowerCase().includes('homolog')?'#f0a500':'#888';
   const _SS=s=>s.toLowerCase().includes('andamento')?'Em And.':s.toLowerCase().includes('homolog')?'Homolog.':s.substring(0,10);
@@ -2573,7 +2573,7 @@ function renderExecPanel(fA, msSel, fP, dias, rawR, hConcAll, hAndAll, capT, hCo
   let _aH='';
   const _COL='grid-template-columns:80px 1fr 82px 82px 44px';
   // Cabeçalho único de colunas — compartilhado por todos os projetos
-  if(['LA','NN','IBR'].some(p=>_aP[p]&&_aP[p].t.length)){
+  if(['LA','NN','BR'].some(p=>_aP[p]&&_aP[p].t.length)){
     _aH=`<div style="display:grid;${_COL};align-items:center;padding:3px 0 5px;border-bottom:1px solid var(--b);margin-bottom:3px">
       <span style="font-size:10px;font-weight:600;color:var(--ts);text-transform:uppercase;letter-spacing:.8px">Ticket</span>
       <span style="font-size:10px;font-weight:600;color:var(--ts);text-transform:uppercase;letter-spacing:.8px;padding-left:8px">Título</span>
@@ -2582,7 +2582,7 @@ function renderExecPanel(fA, msSel, fP, dias, rawR, hConcAll, hAndAll, capT, hCo
       <span style="font-size:10px;font-weight:600;color:var(--ts);text-transform:uppercase;letter-spacing:.8px;text-align:right">Est.</span>
     </div>`;
   }
-  ['LA','NN','IBR'].filter(p=>_aP[p]&&_aP[p].t.length).forEach(p=>{
+  ['LA','NN','BR'].filter(p=>_aP[p]&&_aP[p].t.length).forEach(p=>{
     const g=_aP[p],col=_PC[p]||'var(--ts)',nm=_PN[p]||p;
     // Linha de projeto
     _aH+=`<div style="display:grid;${_COL};align-items:center;padding:5px 0 3px;margin-top:5px;border-bottom:1px solid rgba(255,255,255,0.08)">
@@ -2933,7 +2933,7 @@ function calRenderActList(){
   var totalTk=allTickets.length;
   if(!totalTk){panel.innerHTML='';return;}
   var byProj={};
-  var PC_MAP={LA:'#7F77DD',NN:'#f0a500',IBR:'#2B8FE0'};
+  var PC_MAP={LA:'#7F77DD',NN:'#f0a500',BR:'#2B8FE0'};
   allTickets.forEach(function(t){
     if(!byProj[t.proj]) byProj[t.proj]={tickets:[],h:0};
     var cli=(t.proj==='NN'&&t.cliente)?t.cliente:'_';
